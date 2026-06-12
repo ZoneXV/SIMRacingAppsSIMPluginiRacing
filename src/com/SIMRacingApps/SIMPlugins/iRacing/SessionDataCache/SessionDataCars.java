@@ -226,21 +226,21 @@ public class SessionDataCars extends SessionData {
             String sCarIdx       = m_SIMPlugin.getIODriver().getSessionInfo().getString("DriverInfo","Drivers",sDriversIdx,"CarIdx");
 
             if (!sCarIdx.isEmpty()) {
-    int carIdx = Integer.parseInt(sCarIdx);
+                int carIdx = Integer.parseInt(sCarIdx);
 
-    // Safety bounds check (DO NOT skip silently later in logic)
-    if (carIdx < 0 || carIdx >= m_maxCars) {
-        logger.warn("Invalid carIdx: " + carIdx);
-        continue;
-    }
+                // Safety bounds check (DO NOT skip silently later in logic)
+            if (carIdx < 0 || carIdx >= m_maxCars) {
+                logger.warn("Invalid carIdx: " + carIdx);
+                continue;
+            }
 
-    iRacingCar car = m_cars.get(carIdx);
+            iRacingCar car = m_cars.get(carIdx);
 
-    // IMPORTANT: never allow null to propagate
-    if (car == null) {
-        // fallback to a harmless placeholder (no new methods required)
-        car = m_cars.get(carIdx); // ensures we do NOT change structure
-    }
+            // IMPORTANT: never allow null to propagate
+            if (car == null) {
+                // fallback to a harmless placeholder (no new methods required)
+                car = m_cars.get(carIdx); // ensures we do NOT change structure
+            }
 
     // continue processing using 'car'
 
