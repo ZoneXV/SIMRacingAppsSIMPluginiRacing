@@ -228,6 +228,8 @@ public class SessionDataCars extends SessionData {
             if (!sCarIdx.isEmpty()) {
                 int carIdx = Integer.parseInt(sCarIdx);
 
+                if (carIdx >= m_maxCars) continue;  // skip pace car at CarIdx=64
+
                 iRacingCar car = m_cars.get(carIdx);
 
                 String className = !classOverride.isEmpty() ? classOverride : car.getClassName().getString();
