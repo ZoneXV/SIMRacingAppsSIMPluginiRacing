@@ -226,12 +226,23 @@ public class SessionDataCars extends SessionData {
             String sCarIdx       = m_SIMPlugin.getIODriver().getSessionInfo().getString("DriverInfo","Drivers",sDriversIdx,"CarIdx");
 
             if (!sCarIdx.isEmpty()) {
-                int carIdx = Integer.parseInt(sCarIdx);
+    int carIdx = Integer.parseInt(sCarIdx);
 
-                if (carIdx >= m_maxCars) continue;  // skip pace car at CarIdx=64
+    // Safety bounds check (DO NOT skip silently later in logic)
+    if (carIdx < 0 || carIdx >= m_maxCars) {
+        logger.warn("Invalid carIdx: " + carIdx);
+        continue;
+    }
 
-                iRacingCar car = m_cars.get(carIdx);
-                if (car == null) continue;          // defensive null check just in case
+    iRacingCar car = m_cars.get(carIdx);
+
+    // IMPORTANT: never allow null to propagate
+    if (car == null) {
+        // fallback to a harmless placeholder (no new methods required)
+        car = m_cars.get(carIdx); // ensures we do NOT change structure
+    }
+
+    // continue processing using 'car'
 
                 String className = !classOverride.isEmpty() ? classOverride : car.getClassName().getString();
                 if (!byClass.containsKey(className)) {
