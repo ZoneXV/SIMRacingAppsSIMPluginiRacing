@@ -42,7 +42,7 @@ public class Speedometer extends iRacingGauge {
 
         //double WayOverPitSpeed     = 1.10;
         double WayOverPitSpeed     = (PitRoadSpeedLimit + (this.m_UOM.equals("mph") ? 15.0 : 25.0)) / PitRoadSpeedLimit;
-        double OverPitSpeed        = (PitRoadSpeedLimit + 0.8) / PitRoadSpeedLimit;
+        double OverPitSpeed        = (PitRoadSpeedLimit + 0.0) / PitRoadSpeedLimit;
         double PitSpeed            = (PitRoadSpeedLimit - 0.5) / PitRoadSpeedLimit;
         
         //these percentages correspond to the percentages used by the shift lights
