@@ -1,6 +1,8 @@
+// Modified 2026 by Green Delta Systems (Davis Greenwell) - see CHANGES.md. Original work (C) 2015-2024 Jeffrey Gilliam, Apache License 2.0.
 package com.SIMRacingApps.SIMPlugins.iRacing;
 
 import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -79,7 +81,10 @@ public class Yaml_parser {
        SessionType: Practice
     ...
     */
-    public TreeMap<String,Object> load(byte data[]) {
+    public TreeMap<String,Object> load(byte rawdata[]) {
+        //iRacing 2026 S3 emits UTF-8 in the session string (unicode driver/car names,
+        //Simplified Chinese, etc). Decode once as UTF-8 so names aren't mangled.
+        char[] data = new String(rawdata, StandardCharsets.UTF_8).toCharArray();
         TreeMap<String,Object> results= new TreeMap<String,Object>();
         ArrayList<Object> collections = new ArrayList<Object>();
         StringBuilder key             = new StringBuilder();
@@ -94,7 +99,7 @@ public class Yaml_parser {
         for (int i=0; i < len; i++) {
 
             //convert byte to unsigned char
-            char c = (char) ((int)data[i] & 0xFF);
+            char c = data[i];
 
             switch(c)
             {

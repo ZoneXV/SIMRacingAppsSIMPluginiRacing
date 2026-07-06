@@ -1,3 +1,4 @@
+// Modified 2026 by Green Delta Systems (Davis Greenwell) - see CHANGES.md. Original work (C) 2015-2024 Jeffrey Gilliam, Apache License 2.0.
 package com.SIMRacingApps.SIMPlugins.iRacing;
 
 import java.nio.ByteBuffer;
@@ -136,8 +137,10 @@ public class SessionInfo {
     
     public int getInteger(Object p_o) {
         String s = getString(p_o);
-        if (!s.isEmpty())
-            return Integer.parseInt(s);
+        try {
+            if (!s.isEmpty())
+                return Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) { /* SIM changed this field; don't kill the connection */ }
         return -1;
     }
     
@@ -147,8 +150,10 @@ public class SessionInfo {
 
     public double getDouble(Object p_o) {
         String s = getString(p_o);
-        if (!s.isEmpty())
-            return Double.parseDouble(s);
+        try {
+            if (!s.isEmpty())
+                return Double.parseDouble(s.trim());
+        } catch (NumberFormatException e) { /* SIM changed this field; don't kill the connection */ }
         return -1.0;
     }
     
@@ -158,8 +163,10 @@ public class SessionInfo {
 
     public boolean getBoolean(Object p_o) {
         String s = getString(p_o);
-        if (!s.isEmpty())
-            return new Data("",s).getBoolean();
+        try {
+            if (!s.isEmpty())
+                return new Data("",s).getBoolean();
+        } catch (Exception e) { /* SIM changed this field; don't kill the connection */ }
         return false;
     }
     

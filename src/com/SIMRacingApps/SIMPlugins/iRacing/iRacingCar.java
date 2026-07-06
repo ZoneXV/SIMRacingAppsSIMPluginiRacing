@@ -1,3 +1,4 @@
+// Modified 2026 by Green Delta Systems (Davis Greenwell) - see CHANGES.md. Original work (C) 2015-2024 Jeffrey Gilliam, Apache License 2.0.
 package com.SIMRacingApps.SIMPlugins.iRacing;
 
 import java.io.FileNotFoundException;
@@ -2166,6 +2167,27 @@ else
             }
         }
 
+        return d;
+    }
+
+    @Override
+    public Data getLapTimeProjected() {
+        Data d = super.getLapTimeProjected();
+        //The base projection falls back to a speed-based estimate when the last lap time is
+        //unavailable. In REPLAYS the last lap time is frequently 0, so that fallback kicks in and,
+        //at caution/pit speeds, projects lap times of minutes -- which inflates the "Behind" gaps
+        //(Session/DiffCars) into the 1-9 minute range seen on the standings widgets. Prefer a real
+        //green-flag lap time (last, then session best) and only override when the base value is
+        //clearly wrong, so good live behavior is left untouched.
+        double repLapTime = getLapTime(Car.LapType.SESSIONLAST).getDouble();
+        if (repLapTime <= 0.0)
+            repLapTime = getLapTime(Car.LapType.SESSIONBEST).getDouble();
+        if (repLapTime > 0.0 && !getStatus().getString().contains("PIT") && !getIsPaceCar().getBoolean()) {
+            double pct = getLap(Car.LapType.COMPLETEDPERCENT).getDouble() / 100.0;
+            double projected = (repLapTime * (1.0 - pct)) + getLapTime(Car.LapType.CURRENT).getDouble();
+            if (d.getDouble() <= 0.0 || d.getDouble() > (repLapTime * 2.0))
+                d.setValue(projected);
+        }
         return d;
     }
 

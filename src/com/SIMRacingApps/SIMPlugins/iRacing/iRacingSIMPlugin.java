@@ -1,3 +1,4 @@
+// Modified 2026 by Green Delta Systems (Davis Greenwell) - see CHANGES.md. Original work (C) 2015-2024 Jeffrey Gilliam, Apache License 2.0.
 package com.SIMRacingApps.SIMPlugins.iRacing;
 
 import java.io.File;
@@ -214,7 +215,15 @@ public class iRacingSIMPlugin extends SIMPlugin {
                     }
 
                     m_sessionTime = m_session.getTimeElapsed().getDouble();
-                    return m_session.processData();
+                    try {
+                        return m_session.processData();
+                    }
+                    catch (Exception e) {
+                        //A SIM data change threw during processing. Log it and skip this tick
+                        //instead of letting it bubble up to run(), which would close the connection.
+                        Server.logStackTrace(Level.WARNING,"processData() threw; skipping tick to keep connection alive",e);
+                        return false;
+                    }
                 }
             }
         }

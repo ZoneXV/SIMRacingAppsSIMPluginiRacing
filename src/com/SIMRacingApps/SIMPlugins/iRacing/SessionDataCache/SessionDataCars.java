@@ -1,3 +1,4 @@
+// Modified 2026 by Green Delta Systems (Davis Greenwell) - see CHANGES.md. Original work (C) 2015-2024 Jeffrey Gilliam, Apache License 2.0.
 package com.SIMRacingApps.SIMPlugins.iRacing.SessionDataCache;
 
 import java.util.ArrayList;
@@ -179,10 +180,14 @@ public class SessionDataCars extends SessionData {
         if (!this._needsUpdating() && m_cars.size() > 0)
             return;
         
-        if (m_maxCars == 0 && m_SIMPlugin.getIODriver().getVarHeaders().getVarHeader("CarIdxLap") != null)
+        //Pull the real CarIdx array length from the SIM telemetry header on every update.
+        //iRacing 2026 S3 grew this and moved the pace car to a higher index (64), heading toward 128.
+        //This was gated on (m_maxCars == 0), but m_maxCars inits to 64, so it NEVER ran -> cars at
+        //index >= 64 (the pace car) were never created -> NullPointerException below. Now it adapts.
+        if (m_SIMPlugin.getIODriver().getVarHeaders().getVarHeader("CarIdxLap") != null)
             setValue(m_maxCars = m_SIMPlugin.getIODriver().getVarHeaders().getVarHeader("CarIdxLap").Count);
         
-        if (m_maxCars == 0) //don't mess around. If the above logic doesn't give it to us, use 64
+        if (m_maxCars <= 0) //fallback if the header is not available yet
             setValue(m_maxCars = 64);
         
         //see if we have enough cars initialized, don't worry about too many
@@ -220,6 +225,7 @@ public class SessionDataCars extends SessionData {
         String classOverride = "";
         
         for (int driversIdx=0; driversIdx < m_maxCars; driversIdx++) {
+            try {
             String sDriversIdx = Integer.toString(driversIdx);
 
             //the caridx is not always the same as the array index due to them hiding ghost cars and spectators
@@ -228,16 +234,12 @@ public class SessionDataCars extends SessionData {
             if (!sCarIdx.isEmpty()) {
                 int carIdx = Integer.parseInt(sCarIdx);
 
-                if (carIdx < 0 || carIdx >= m_maxCars) {
-                    continue;
-                }
-
                 iRacingCar car = m_cars.get(carIdx);
-                if (car == null) {
-                    // Fallback: safest option is to skip ONLY if your system cannot tolerate null cars
-                    continue;
-                }
 
+                if (car == null) {  //carIdx outside the pre-created range (e.g. pace car moved to index 64) - create on demand instead of NPE
+                    car = new iRacingCar(m_SIMPlugin);
+                    m_cars.put(carIdx, car);
+                }
                 String className = !classOverride.isEmpty() ? classOverride : car.getClassName().getString();
                 if (!byClass.containsKey(className)) {
                     byClass.put(className, new ClassName());
@@ -284,6 +286,12 @@ public class SessionDataCars extends SessionData {
                     
                 }
             }
+            } catch (Exception e) {
+                //A single malformed/at-limit driver entry (e.g. tied to the pace car CarIdx change) must not
+                //abort the whole field. Skip just that entry so the SOF formula below still runs over the rest,
+                //instead of leaving m_SOF frozen as the running iRating sum.
+                Server.logStackTrace(java.util.logging.Level.FINE, "SOF: skipping driver index "+driversIdx, e);
+            }
         }
 
         if (iRatingCount > 0) {
@@ -291,13 +299,13 @@ public class SessionDataCars extends SessionData {
             //m_SOF = m_SOF / iRatingCount;
             
             //got this from the iRacing forum
-            m_SOF = (int)Math.round(ln * Math.log((double)iRatingCount / iRatingExp));
+            m_SOF = (int)Math.floor(ln * Math.log((double)iRatingCount / iRatingExp));  //iRacing truncates SOF; floor matches their displayed value
             Server.logger().finest(String.format("Class[%s] SOF=%f, Count=%d, exp=%f", "ALL", m_SOF, iRatingCount, iRatingExp));
         }
 
         for (Iterator<Entry<String, ClassName>> itr = byClass.entrySet().iterator(); itr.hasNext();) {
             ClassName c = itr.next().getValue();
-            c.SOF = (int)Math.round(ln * Math.log((double)c.iRatingCount / c.iRatingExp));
+            c.SOF = (int)Math.floor(ln * Math.log((double)c.iRatingCount / c.iRatingExp));  //match iRacing (truncate)
             Server.logger().finest(String.format("Class[%s] SOF=%f, Count=%d, exp=%f", c.name, c.SOF, c.iRatingCount, c.iRatingExp));
         }
         
