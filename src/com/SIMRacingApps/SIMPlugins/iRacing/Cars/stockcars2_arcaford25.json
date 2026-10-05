@@ -1,0 +1,40 @@
+{
+    "Description": "ARCA Ford Mustang",
+    "MfrLogo":     "com/SIMRacingApps/Cars/ford.png",
+    "Copyright": "Copyright (C) 2015 - 2026 Jeffrey Gilliam, additions by Tyler Dalton",
+    "Gauges": {
+        "FuelPressure": {
+            "default": {
+                "Minimum":          0.0,
+                "Maximum":          100.0,
+                "MajorIncrement":   10.0,
+                "MinorIncrement":   5.0,
+                "States": {
+                    "CRITICAL": { "Start": 0.0, "End": 2.0 },
+                    "WARNING":  { "Start": 2.0, "End": 4.0 }
+                }
+            }
+        },
+        "OilTemp": {
+            "default": {
+                "States": {
+                    "CRITICAL": { "Start": 284.0, "End": 999999.0 },
+					"WARNING":  {"Start": 275.0, "End": 284.0}
+                }
+            }
+        },
+		"WaterTemp": {
+            "default": {
+                "States": {
+                    "CRITICAL": {"Start": 266.0, "End": 999999.0},
+                    "WARNING":  {"Start": 257.0, "End": 266.0}
+                }
+            }
+        },
+        "Tape": {
+            "default": {
+                "Reader": "DataVarTapePct"
+            }
+        }
+    }
+}
